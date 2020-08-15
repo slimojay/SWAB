@@ -99,12 +99,12 @@ return 	$_SERVER['PHP_SELF'];
 	  for ($i = 0; $i < count($options); $i++){
 		  $str .= "<options value='$options[$i]'>$options[$i] </option>";
 	  }
-	  $str .= "</select></div>"
+	  $str .= "</select></div>";
 	  return $str;
    }
    
    
-   public function checkBox($value $name, $id){
+   public function checkBox($value, $name, $id){
 	   $Value = ucwords($value);
 	   $str = " <div class='form-check'> $Value &nbsp
     <input type='checkbox' class='form-check-input' value='$value' name='$name' id='$id'>
@@ -113,7 +113,7 @@ return 	$_SERVER['PHP_SELF'];
 	return $str;
 	
    }
-   public function radioGroup($name, $id array $options){
+   public function radioGroup($name, $id, array $options){
 	   //$Value = ucwords($value);
 	 $str = " <div class='form-check form-check-inline'>";
 	for($i = 0; $i < count($options); $i++){
@@ -128,18 +128,6 @@ return 	$_SERVER['PHP_SELF'];
    }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 ?>
