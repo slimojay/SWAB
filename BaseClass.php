@@ -1,6 +1,6 @@
 <?php
-header("Cache-Control: no-cache, must-revalidate"); // HTTP/1.1
-header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Date in the past
+//header("Cache-Control: no-cache, must-revalidate"); // HTTP/1.1
+//header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Date in the past
 //the slimphp class is a basic CRUD application helper, which helps PHP  developers build crud apps 
 //seamlessly, as the SlimPHP library helps them complete most of the tasks, in order to reduce time spent on a project
 //  
@@ -8,6 +8,8 @@ class BaseClass{
 	public $con; 
 	public $path;
 	public $currentPath;
+	public $href ;
+	public $offset;
 	public function __construct(){
 		
 	}
@@ -65,19 +67,19 @@ return 	$_SERVER['PHP_SELF'];
    
    
    
-   public function inputField($type, $name, $id, $placeholder, $bool){
-	    if($bool == false){
-		   $bool = '';
+   public function inputField($type, $name, $id, $placeholder, bool $required){
+	    if($required == false){
+		   $required = '';
 	   }
 	   else{
-		   $bool = 'required';
+		   $required = 'required';
 	   }
 	   $arr = array('email', 'text', 'password');
 	   if (!in_array($type, $arr)){
 		   die('input type not supported, try using the appropriate method');
 	   }
 	  $str = "<div class='form-group'>
-	  <input type='" . $type . "' name='" . $name .  "' id= '" . $id . "' placeholder = '" . $placeholder . "' class='form-control'" . $bool . "/></div>";
+	  <input type='$type' name='$name' id= '$id' placeholder = '$placeholder' class='form-control' $required/></div>";
 	  return $str;
 	   
    }
@@ -162,7 +164,7 @@ return 	$_SERVER['PHP_SELF'];
    
    
    public function insert($table, array $keys, array $values){
-	   $errors = array(); $output = array();
+	   $this->errors = array(); $this->output = array();
 	   if (count($keys) == count($values)){
 	   /*array_push('cols and values do not match in length', $errors);
 		print_r($errors);*/
@@ -182,30 +184,21 @@ return 	$_SERVER['PHP_SELF'];
 		   $msg = 'data inserted';
 		   $this->output['outcome'] = $msg;
 		   $id = $this->con->insert_id;
-		  // print_r( $id);
-		   //$output['insert_id'] = $this->con->insert_id;
-		   /*$runner = $this->con->query("SELECT MAX(id) FROM $table ");
-		   $result = $runner->fetch_assoc();
-		   //$result = $result->free_result();
-		   $id = array_values($result);
-		   //echo $id;*/
+		  
 		   $this->output['Query_Id'] = $id;
-		   //echo $output['Query_Id'][0] . "<br>";
-		   //$output['sql_result'] = implode(' ', $result);
-		   //print_r($result);
-		   //echo  "<br>";
+		   
 		   $this->con->rollback();
 	   }
 	   else{
-		   $err = mysqli_error($this->con);
-		   $output['error1'] = $err;
+		   $err = mysqli_error($this->con); 
+		   $this->output['error1'] = $err;
 	   }
 	  
 	   
 	   }
 	   else{
 		   $msg = 'columns and values do not match in length';
-		  $output['error2'] = $msg;
+		  $this->output['error2'] = $msg;
 	   }
 	   return $this->output;
    }
@@ -272,12 +265,126 @@ return 	$_SERVER['PHP_SELF'];
 		  echo '<br>';
 		  return $result;
 	  }
-	  
+   }
+   
+ public function displayPagination($total_num_of_pages, $page_no){ 
+	$output = '';
+/*if ($using_query_string == true){
+	$url = $_SERVER['PHP_SELF'] . '?' . $_SERVER['QUERY_STRING'];
+    $
+$url = 
+
+}
+*/
+$url = $_SERVER['PHP_SELF'];
+if (isset($_SERVER['QUERY_STRING'])){
+	//unset($_GET['page_no']);
+	$queries = $_SERVER['QUERY_STRING'];}else{
+		$queries ='';
+	}
+	$url .= '?' . $queries . '&page_no';
+
+/*else{
+	$url .= '?page_no';
+}*/
+if ($total_num_of_pages >= 1){
+//$page_no;
+if($total_num_of_pages <= 10){
+   for ($i =1; $i <= $total_num_of_pages; $i++){
+	   if($i == $page_no){
+		   $output .= "<li class='active page-item'><a href='$url=$page_no' class='page-link'>$i</a></li>";
+	   }else{
+     $output .= "<li class='page-item'><a href='$url=$i' class='page-link'>$i</a></li>";
+	   }
+  }
+  //$this->pagi = $output;
+}
+else if($total_num_of_pages > 10){
+if ($page_no <= 4){
+	for($i = 1; $i < 8; $i++){
+		if($i == $page_no){
+		$output .= "<li class='active page-item blue'><a href='$url=$page_no' class='blue page-link'>$i</a></li>";	
+		}else{
+		$output .= "<li class='blue page-item'><a href='$url=$i' class='blue page-link'>$i</a></li>";	
+		}
+	}
+	$output .= '...';
+	$penult = $total_num_of_pages - 1;
+	$output .= "<li class='blue page-item'><a href='$url=$penult ' class='blue page-link'>$penult</a></li>";
+	$output .= "<li class='page-item'><a href='$url=$page_no' class='blue page-link'>$total_num_of_pages</a></li>"; 
+}
+elseif($page_no > 4 && $page_no < $total_no_of_pages - 4){
+	$output .= "<li class='page-item'><a href='$url=1' class='blue page-link'>1</a></li><li class='page-item'><a href='$url=2' class='blue page-link'>2</a></li><li class='page-item'>...</li>";
+	for($i = $page_no - $adjacent; $i <= $page_no + $adjacent; $i++){
+		if ($i == $page_no){
+			$output .= "<li class='active page-item'><a href='$url=$page_no' class='blue page-link'>$i</a></li>";
+		}else{
+			$output .=  "<li class='page-item'><a href='$url=$i' class='blue page-link'>$i</a></li>";
+		}
+	}
+	$output .= '...';
+	$penult = $total_num_of_pages - 1;
+	$output .= "<li class='page-item'><a href='$url=$penult' class='blue page-link'>$penult</a></li>";
+	$output .= "<li class='page-item'><a href='$url=$page_no' class='blue page-link'>$total_num_of_pages</a></li>"; 
+}
+else {
+	$output .= "<li class='page-item'><a href='$url?=1' class='blue page-link'>1</a></li><li class='page-item'><a href='$url=2' class='blue page-link'>2</a></li><li>...</li>";
+	for ($i = $total_no_of_pages - 6; $i <= $total_no_of_pages; $i++) {
+     if ($i == $page_no) {
+ echo "<li class='active page-item'>$i</li>"; 
+ }else{
+        echo "<li class='page-item'><a href='$url=$i' class='blue page-link'>$i</a></li>";
+ }                   
+     }
+}
+
+
+}
+
+
+}
+else{
+	$output .= "no data to display";
+}
+$this->pagi = $output;
+return $this->pagi;
+}
+   
+   public function sqlQuery($table, $limit, $offset, $sql, $keynames){
+	//$this->keynames = ('name')
+	 $sql =  $this->con("SELECT *FROM $table LIMIT $offset, $limit ");
+	 $this->sql = $sql;
+	 //return $sql;
+   }
+   public function queryBuilder($sql){
+	  // $sql .= " LIMIT $this->offset, $this->items	";
+	   $$this->con->query($sql); 
 	   
-	   
+   }
+   public function pagination($queryString, $items){
+	   if ($items < 2) die('invalid item number');
+	   if (isset($_GET['page_no']) && $_GET['page_no']!="") {
+       $page_no = $_GET['page_no'];
+     } else {
+        $page_no = 1;
+        }
+		//$this->page_url = $page_url;
+		$this->page_no = $page_no;
+		$offset = ($page_no - 1) * $items;
+		$this->offset = $offset;
+		$this->items = $items;
+        $previous_page = $page_no - 1;
+        $next_page = $page_no + 1;
+		$adjacents = 2; 
+		$result_count = $this->con->query($queryString);// . "  LIMIT " . $offset . "," . $items_per_page);
+		$total_records = $result_count->num_rows;
+		$this->total_records = $total_records;
+		$total_no_of_pages = ceil($total_records / $items);
+		$this->total_no_of_pages = $total_no_of_pages;
+		$second_last = $total_no_of_pages - 1;
+		$this->displayPagination($total_no_of_pages, $page_no);  
    }
    
 
 }
-
 ?>
