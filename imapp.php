@@ -2,10 +2,10 @@
 include('../include/server.php');
 include('BaseClass.php');
 $concern = $_SESSION['concern'];
-$concern = "adeniji kazeem";
+$concern = " ";
 $app = new BaseClass();
-//$app->connect('root', '', 'gindex_gindex');
-$app->connect('gindex_gindex', 'D%kuP(+@Ie;x', 'gindex_gindex');
+$app->connect('root', '', 'gindex_gindex');
+
 $sel = $app->con->query("SELECT msgno FROM imap_mail_log WHERE concern = '$concern' ORDER BY id DESC LIMIT 1"); 
 while($r = $sel->fetch_assoc()){
 	if (!empty($r['msgno'])){
