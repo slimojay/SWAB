@@ -4,15 +4,21 @@
 //the slimphp class is a basic CRUD application helper, which helps PHP  developers build crud apps 
 //seamlessly, as the SlimPHP library helps them complete most of the tasks, in order to reduce time spent on a project
 //  
+
 class BaseClass{
 	public $con; 
 	public $path;
 	public $currentPath;
 	public $href ;
-	public $offset;
+	public $offset; public $states;
+	public $lastUrl;
+	
+	
+	
 	public function __construct(){
 		
 	}
+	
 	
 	//this method helps you connect to the database,
 	//it takes three args
@@ -34,13 +40,20 @@ class BaseClass{
 	
    public function fullPath(){
 	   $this->path = $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-	return $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+	   if(empty($_SERVER['QUERY_STRING'])){ return $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];}
+	   else{ return $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] . '?' . $_SERVER['QUERY_STRING'];}
    }
    public function currentPath(){
 	  $this->currentPath = $_SERVER['PHP_SELF'];
 return 	$_SERVER['PHP_SELF'];  
 	   
    }
+   public function currentPage(){
+	   $uri = $_SERVER['PHP_SELF'];
+	   $str = explode('/', $uri);
+	   return $str[2];
+   }
+   
    public function openForm($action, $method,  $id, $bool){
 	   if($bool == false){
 		   $bool = '';
@@ -207,65 +220,90 @@ return 	$_SERVER['PHP_SELF'];
 		echo 'file not set';
          die();		
 	   }else{
-		   $this->output = mime_content_type($file);
+		   $this->mimeoutput = mime_content_type($file);
 		   
-		   return $this->output;
+		   return $this->mimeoutput;
 	   }
    }
-   public function upload(string $file, array $dir, bool $create_dir_if_not_exists,int $size = 0, array $extensions){
-	   if(empty($file)){
+   
+   public function upload2(array $name, $dir, bool $create_dir_if_not_exists,  array $extensions, array $size){
+	   for ($i, )
+	   
+	   
+	   
+	   
+	   
+	   
+   }
+   
+   
+   
+   
+   
+   public function upload(string $name, $dir, bool $create_dir_if_not_exists,  array $extensions, int $size){
+	   if(empty($name)){
 		   echo 'empty name parameter';
 		   exit;
-	   }else{
-		   echo $file;
 	   }
-	   $filename = basename($file);
+	   $filename = basename($_FILES[$name]['name']);
+	   $this->isPresent($filename, 'php');
+	   if ($this->comp == true){
+		   echo '<br>file name is unacceptable'; exit;
+	   }
 	   //the third parameter 'create_dir_if_not_exists', take either true or false
 	   //if true a directory with the directory name passed as a second parameter will be created
 	   //$type can either be $file = application/pdf, image/png etc
 	   //please be sure to check the right format for your file;
 	   //the $type parameter is optional
-	   for($i = 0; $i < count($dir); $i++){
+	  // for($i = 0; $i < count($dir); $i++){
 		   
-	   if(!file_exists($dir[$i]) && $create_dir_if_not_exists == false){
-		 echo $dir[$i] . 'is not a recognized folder <br> please create this directory or pass <u>true</u> as a third parameter to this function';   
+	   if(!file_exists($dir) && $create_dir_if_not_exists == false){
+		 echo $dir . 'is not a recognized folder <br> please create this directory or pass <u>true</u> as a third parameter to this function';   
 	   }
-	   else if(!file_exists($dir[$i]) && $create_dir_if_not_exists == true){
-		   mkdir($dir[$i]);
+	   else if(!file_exists($dir) && $create_dir_if_not_exists == true){
+		   mkdir($dir);
 	   }
-	   }
+	  // }
 	   
-	   //checking if the file is what we expect and if it's an allowed file type
-	  $this->checkMime($filename);
-	  $ext = explode('/', $this->output);
-	  if(!in_array($ext[1], $extensions)){
-		  echo '<hr>' . $ext[1] . '____' . $this->output . '<hr>';
-		  echo '<br> unrecognized file format';
-		  exit;
+	  $file_ext = pathinfo($filename, PATHINFO_EXTENSION);
+	  if (!in_array($file_ext, $extensions)){
+		  echo 'unrecognized file extension - ' . $file_ext; exit;    
 	  }
 	  
-	  /*if (!in_array($this->output, $type)){
-		  echo '<br> unrecognized file format';
-		  exit;
-	  }*/
 	  if ($size !== 0){
-		  if (filesize($file) > $size){
-			  echo 'max file size allowed : ' . $size . '<br> file size uploaded : ' . filesize($file);
+		  if ($_FILES[$name]['size'] > $size){
+			  echo 'max file size allowed : ' . $size . '<br> file size uploaded : ' . $_FILES[$name]['size'];
 			  exit;
 		  }
 		  
 	  }
+	  else if($size == 0){
+		$size =  $_FILES[$name]['size'] * 1.5; 
+	  }
 	  $iv = rand(99, 9999);
-	  $date = date('l-D-M-Y');
-	  $this->newname = $date . $iv . $filename;
-	  if (move_uploaded_file($_FILES[$file]['tmp_name'], $this->newname)){
+	  $date = time();
+	  $this->newname = $dir . '/' . $date . $filename;
+	  if (move_uploaded_file($_FILES[$name]['tmp_name'], $this->newname)){
 		  $result = array();
 		  $result['filename'] = $this->newname;
-		  $result['outcome'] = 'file moved';
+		  $result['outcome'] = 'file successfully moved ';
 		  echo '<br>';
+		  echo $result['outcome'];
 		  return $result;
 	  }
    }
+   
+   function isPresent($str, $sub){
+	if (stristr($str, $sub)){
+		$this->comp = true;
+		return $this->comp;
+	}
+	else{
+		$this->comp = false;
+		return $this->comp;
+	}
+}
+   
    
  public function displayPagination($total_num_of_pages, $page_no){ 
 	$output = '';
@@ -325,7 +363,7 @@ elseif($page_no > 4 && $page_no < $total_no_of_pages - 4){
 	$output .= '...';
 	$penult = $total_num_of_pages - 1;
 	$output .= "<li class='page-item'><a href='$url=$penult' class='blue page-link'>$penult</a></li>";
-	$output .= "<li class='page-item'><a href='$url=$page_no' class='blue page-link'>$total_num_of_pages</a></li>"; 
+		$output .= "<li class='page-item'><a href='$url=$page_no' class='blue page-link'>$total_num_of_pages</a></li>"; 
 }
 else {
 	$output .= "<li class='page-item'><a href='$url?=1' class='blue page-link'>1</a></li><li class='page-item'><a href='$url=2' class='blue page-link'>2</a></li><li>...</li>";
@@ -378,6 +416,9 @@ return $this->pagi;
 		$adjacents = 2; 
 		$result_count = $this->con->query($queryString);// . "  LIMIT " . $offset . "," . $items_per_page);
 		$total_records = $result_count->num_rows;
+		if ($total_records == 0){
+			echo '<br>no records found';
+		}
 		$this->total_records = $total_records;
 		$total_no_of_pages = ceil($total_records / $items);
 		$this->total_no_of_pages = $total_no_of_pages;
@@ -385,6 +426,32 @@ return $this->pagi;
 		$this->displayPagination($total_no_of_pages, $page_no);  
    }
    
+public function states(){
+	$states = array('abia', 'adamawa', 'akwa-ibom', 'anambra', 'bauchi', 'bayelsa', 'benue', 'borno', 'cross river', 'delta', 'ebonyi', 'edo', 'ekiti', 'enugu',
+	'gombe', 'imo', 'jigawa', 'kaduna', 'kano', 'katsina', 'kebbi', 'kogi', 'kwara', 'lagos', 'niger', 'ogun', 'ondo', 'osun', 'oyo', 'plateau', 'rivers', 'sokoto',
+	'taraba', 'yobe', 'zamfara');
+	//$this->states = $states;
+	return $states;
+	
+}
+public function setLastUrl(){
+	
+	$lastUrl = $this->currentPage();
+	if (!empty($_SERVER['QUERY_STRING'] )){
+		$lastUrl .= '?' . $_SERVER['QUERY_STRING']; 
+		
+	}
+	$this->lastUrl = $lastUrl;
+	$_SESSION['lastUrl'] = $lastUrl;
+}
+
+public function getLastUrl(){
+	
+	$uri = $_SESSION['lastUrl'];
+	echo "<script>window.location='$uri'  </script>";
 
 }
+}
+
+
 ?>
